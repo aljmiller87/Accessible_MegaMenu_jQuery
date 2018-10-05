@@ -12,42 +12,58 @@ $.fn.megaMenuAccessibility = function(hasMenuClass, megaMenuElement) {
     // Check if element exists
     if($(this).length > 0) {
       var menu = $(this);
-      var sample = menu.find($('.' + megaMenuElement)).first();
-      var styles = getMegaMenuStyle(sample);
-      menu.find($('.' + hasMenuClass)).each(function() {
-        var ariaLabel = ' link. Press enter to go to link. Press spacebar to open interior menu.';
-        
-        var link = findAnchor($(this));
-        var text = getText(link);
 
+      // Finds the first megaMenu on page which will be hidden by default
+      var hiddenMegaMenu = menu.find($('.' + megaMenuElement)).first();
+
+      // Finds the css styles that control how megamenu is shown and hidden
+      var styles = getMegaMenuStyle(hiddenMegaMenu);
+
+      // For each link that is associated with a megaMenu, it will perform the following function
+      menu.find($('.' + hasMenuClass)).each(function() {
+        
+        // Finds where the actual anchor element is
+        var link = findAnchor($(this));
+        // Grabs the text of the anchor link
+        var text = getText(link);
+        var ariaLabel = ' link. Press enter to go to link. Press spacebar to open interior menu.';      
+        // Builds and inserts the new aria label
         link.attr('aria-label', text + ariaLabel);
 
+        // On focus of any link associated with megaMenu, all megeMenus will be hidden
         link.focus(function() {
           menu.find('.' + megaMenuElement).css(styles.hide);
-          menu.find('.' + hasMenuClass).find('span.caret').css('display', 'none');
+          // menu.find('.' + hasMenuClass).find('span.caret').css('display', 'none');
         })
+
+        // On keydown of spacebar, prevent default behavior
         link.keydown(function(event) {
           if(event.which == 32) {
             event.preventDefault();
           }
         })
+
+        // On keyup of spacebar:
         link.keyup(function(event) {  
           if(event.which == 32) {
+            // Hide all megamenus
             menu.find('.' + megaMenuElement).css(styles.hide);
             menu.find('.' + hasMenuClass).find('span.caret').css('display', 'none');
-            $(this).parent().next().css(styles.show).focus();
+            // $(this).parent().next().css(styles.show).focus();
             
 
-            // Find related megamenu (is it a sibling of link? sibling of parent?, etc)
+            // Find related megaMenu 
+            // For example, is megaMenu a sibling of link? sibling of parent of link?, etc)
+            // Will check all markup starting with link's sibling all the way up to wrapper "menu" element
             var $that = $(this);
             while ($that.parent() != menu) {
-              // $that = $that.parent();
               var megamenu;              
-              if($that.siblings('.' + megaMenuElement)) {
-                if($that.siblings('.' + megaMenuElement).length > 1) {
-                  megamenu = $that.siblings('.' + megaMenuElement).first();
+              var megaMenuSiblings = $that.siblings('.' + megaMenuElement);
+              if(megaMenuSiblings.length > 0) {
+                if(megaMenuSiblings.length > 1) {
+                  megamenu = $that.next();
                 } else {
-                  megamenu = $that.siblings('.' + megaMenuElement);
+                  megamenu = megaMenuSiblings;
                 }                
                 megamenu.css(styles.show).focus();
                 break;
