@@ -12,7 +12,8 @@ $.fn.megaMenuAccessibility = function(hasMenuClass, megaMenuElement) {
     // Check if element exists
     if($(this).length > 0) {
       var menu = $(this);
-      getMegaMenuStyle(menu);
+      var sample = menu.find($('.' + megaMenuElement)).first();
+      var styles = getMegaMenuStyle(sample);
       menu.find($('.' + hasMenuClass)).each(function() {
         var ariaLabel = ' link. Press enter to go to link. Press spacebar to open interior menu.';
         
@@ -22,7 +23,7 @@ $.fn.megaMenuAccessibility = function(hasMenuClass, megaMenuElement) {
         link.attr('aria-label', text + ariaLabel);
 
         link.focus(function() {
-          menu.find('.' + megaMenuElement).css('display', 'none');
+          menu.find('.' + megaMenuElement).css(styles.hide);
           menu.find('.' + hasMenuClass).find('span.caret').css('display', 'none');
         })
         link.keydown(function(event) {
@@ -32,23 +33,23 @@ $.fn.megaMenuAccessibility = function(hasMenuClass, megaMenuElement) {
         })
         link.keyup(function(event) {  
           if(event.which == 32) {
-            menu.find('.' + megaMenuElement).css('display', 'none');
+            menu.find('.' + megaMenuElement).css(styles.hide);
             menu.find('.' + hasMenuClass).find('span.caret').css('display', 'none');
-            $(this).parent().next().css('display', 'block').focus();
+            $(this).parent().next().css(styles.show).focus();
             
 
             // Find related megamenu (is it a sibling of link? sibling of parent?, etc)
             var $that = $(this);
             while ($that.parent() != menu) {
-              $that = $that.parent();
+              // $that = $that.parent();
+              var megamenu;              
               if($that.siblings('.' + megaMenuElement)) {
-                var megamenu;
                 if($that.siblings('.' + megaMenuElement).length > 1) {
                   megamenu = $that.siblings('.' + megaMenuElement).first();
                 } else {
                   megamenu = $that.siblings('.' + megaMenuElement);
                 }                
-                megamenu.css('display', 'block').focus();
+                megamenu.css(styles.show).focus();
                 break;
               } else {
                 $that = $that.parent();
@@ -61,8 +62,6 @@ $.fn.megaMenuAccessibility = function(hasMenuClass, megaMenuElement) {
     }
 
     function getText(element) {
-      // var link = element.find('a');
-      console.log('element.text()', element.text())
       return element.text();
     }
 
@@ -73,44 +72,27 @@ $.fn.megaMenuAccessibility = function(hasMenuClass, megaMenuElement) {
         } else {
           anchorElement = element.find('a').first();
         }
-      console.log('anchorElement returned', anchorElement);
       return anchorElement;
     }
 
     function getMegaMenuStyle(menu) {
-      var styles = {};
-      var megaMenu = menu.find('.' + megaMenuElement);
-      console.log('megaMenu', megaMenu);
-      console.log('visibility', megaMenu.css('visibility'));
-      console.log('opacity', megaMenu.css('opacity'));
-      console.log('display', megaMenu.css('display'));
-      if(megaMenu.css('visibility') == "hidden") {
-        styles.show = {
-          visibility: "visible"
-        };
-        styles.hide = {
-          visibility: "hidden"
-        }
+      var styles = {
+        show: {},
+        hide: {}
+      };
+      if(menu.css('visibility') == "hidden") {
+        styles["show"]["visibility"] = "visible";
+        styles["hide"]["visibility"] = "hidden";      
       }
-      if(megaMenu.css('opacity') == "0") {
-        styles.show = {
-          opacity: "1"
-        };
-        styles.hide = {
-          opacity: "0"
-        }
+      if(menu.css('opacity') == "0") {
+        styles["show"]["opacity"] = "1";
+        styles["hide"]["opacity"] = "0";
       }
-      if(megaMenu.css('display') == "none") {
-        styles.show = {
-          display: "block"
-        };
-        styles.hide = {
-          display: "none"
-        }
+      if(menu.css('display') == "none") {
+        styles["show"]["display"] = "block";
+        styles["hide"]["display"] = "none";
       }
-      console.log('styles', styles);
       return styles;
     }
 
 }
-
